@@ -1,19 +1,21 @@
-//add product ..  etc
+const path = require('path');
 
-const express = require("express");
+const express = require('express');
+
+const adminController = require('../controllers/admin');
 
 const router = express.Router();
 
-router.get('/add-product', (req, res, next) => {
-    res.send("<form action='/admin/add-product' method='POST'><input name='title' type='text'></input><button type='submit'>Add</button></form>"); //express js dafault : text/html
-});
+// /admin/add-product => GET
+router.get('/add-product', adminController.getAddProduct);
 
-//same as use , but only trigger when 'POST ' 
-///admin/add-product =>POST to itself.
-router.post('/add-product', (req, res, next) => {
-    console.log(req.body);
-    res.redirect('/'); //jump to other url
-});
+// /admin/products => GET
 
+// /admin/add-product => POST
+router.get('/products', adminController.getProducts);
+router.get('/edit-product/:productId', adminController.getEditProduct);
+
+router.post('/edit-product', adminController.postEditProduct);
+router.post('/add-product', adminController.postAddProduct);
 
 module.exports = router;
