@@ -35,10 +35,13 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
+
+  const prodId = req.body.productId;
+
   req.user.getCart()
     .then(cart => {
       //magic Sequelize method provided through association
-      return cart.getProducts({ where: { id: prodId } })
+      return cart.getProducts({ through: { id: prodId } })
         .then((products) => {
           res.render('shop/cart', {
             products: products,
@@ -54,11 +57,12 @@ exports.getCart = (req, res, next) => {
 
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
+
   let fetchedCart;
   req.user.getCart()
     .then(cart => {
       fetchedCart = cart;
-      return cart.getProducts({ where: { id: prodId } })
+      return cart.getProducts({ through: { id: prodId } })
     })
     .then(products => {
       let product;
@@ -68,7 +72,7 @@ exports.postCart = (req, res, next) => {
 
       let newQuantity = 1;
       if (product) {
-        const oldQuantity = product.cartItem.quantity;
+        const oldQuantity = product.cartitems.quantity;
         newQuantity = oldQuantity + 1;
         fetchedCart.addProduct(product, { through: { quantity: newQuantity } })
       }
@@ -93,6 +97,24 @@ exports.postCart = (req, res, next) => {
     .catch(err => {
       console.log(err);
     })
+}
+
+exports.postDeleteCartProduct = (req, res, next) => {
+  const prodId = req.body.productId;
+
+  return req.user.getCart()
+    .then(
+      (cart) => { return cart.getProducts({ where: { id: prodId } }) }
+    ).then(
+      (products) => {
+        let product = products[0];
+        console.log(product);
+        return product.cartitems.destroy();
+      }
+    ).then(() => {
+      return res.redirect('/cart');
+    }
+    ).catch(err => { console.log(err); })
 }
 
 exports.getOrders = (req, res, next) => {
