@@ -65,12 +65,14 @@ User.hasMany(Order);
 Order.belongsToMany(Product, { through: OrderItem });
 
 
+
+
 //reflect new changes, force change
 // sync({force:true})
 
 //the start of npm start
 sequelize
-    .sync({ force: true })
+    .sync()
     .then(res => {
         return User.findByPk(1);
     })

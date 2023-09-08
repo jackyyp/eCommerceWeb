@@ -8,7 +8,7 @@
             <% products.forEach(p=>{%>
                 <li style="display: flex;">
                     <h1><%= p.title %></h1>
-                    <h2>Quantity: <%= p.cartitems.quantity%></h2>
+                    <h2>Quantity: <%= p.cartItem.quantity%></h2>
                     <form action="/cart-delete-item" method="POST">
                         <!-- pass data using hidden input-->
                         <input type="hidden" name=productId  value="<%= p.id %>">
