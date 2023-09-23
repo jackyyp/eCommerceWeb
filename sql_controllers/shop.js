@@ -1,5 +1,5 @@
-const Product = require('../models/product');
-const Cart = require('../models/cart');
+const Product = require('../sql_models/product');
+const Cart = require('../sql_models/cart');
 
 exports.getProducts = (req, res, next) => {
   Product.findAll()

@@ -3,7 +3,7 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const errorController = require('./controllers/error');
+const errorController = require('./sql_controllers/error');
 //const db = require('./util/database'); //simple method
 
 // const sequelize = require('./util/database');
@@ -14,14 +14,14 @@ const errorController = require('./controllers/error');
 // const OrderItem = require('./models/order-item');
 // const Order = require('./models/order');
 
-const mongoConnect = require('./util/database');
-
+const mongoConnect = require('./util/database').mongoConnect;
+const getDb = require('./util/database').getDb;
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-// const adminRoutes = require('./routes/admin');
+const adminRoutes = require('./routes/admin');
 // const shopRoutes = require('./routes/shop');
 
 //SQL syntax
@@ -46,7 +46,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // })
 
 
-// app.use('/admin', adminRoutes);
+app.use('/admin', adminRoutes);
 // app.use(shopRoutes);
 
 // app.use(errorController.get404);
@@ -98,10 +98,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 //         console.log(err);
 //     });
 
-mongoConnect(client => {
-    console.log(client);
-    app.listen(3000);
-})
+mongoConnect(); // async method
+app.listen(3000);
+
+
 
 //set the port    
 
