@@ -4,22 +4,25 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const errorController = require('./controllers/error');
-//const db = require('./util/database');
-const sequelize = require('./util/database');
-const Product = require('./models/product');
-const User = require('./models/user');
-const Cart = require('./models/cart');
-const CartItem = require('./models/cart-item');
-const OrderItem = require('./models/order-item');
-const Order = require('./models/order');
+//const db = require('./util/database'); //simple method
+
+// const sequelize = require('./util/database');
+// const Product = require('./models/product');
+// const User = require('./models/user');
+// const Cart = require('./models/cart');
+// const CartItem = require('./models/cart-item');
+// const OrderItem = require('./models/order-item');
+// const Order = require('./models/order');
+
+const mongoConnect = require('./util/database');
 
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-const adminRoutes = require('./routes/admin');
-const shopRoutes = require('./routes/shop');
+// const adminRoutes = require('./routes/admin');
+// const shopRoutes = require('./routes/shop');
 
 //SQL syntax
 //db.execute('SELECT * FROM products');
@@ -31,74 +34,74 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-app.use((req, res, next) => {
-    User.findByPk(1)
-        .then(user => {
-            req.user = user;
-            next(); //continue with next middleware.
-        })
-        .catch(err => {
-            console.log(err);
-        });
-})
+// app.use((req, res, next) => {
+//     User.findByPk(1)
+//         .then(user => {
+//             req.user = user;
+//             next(); //continue with next middleware.
+//         })
+//         .catch(err => {
+//             console.log(err);
+//         });
+// })
 
 
-app.use('/admin', adminRoutes);
-app.use(shopRoutes);
+// app.use('/admin', adminRoutes);
+// app.use(shopRoutes);
 
-app.use(errorController.get404);
+// app.use(errorController.get404);
 
 //database relation model
 //when delete product, its also delete on all users's product
-Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
-User.hasMany(Product);
+// Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
+// User.hasMany(Product);
 
-User.hasOne(Cart);
-Cart.belongsTo(User);
+// User.hasOne(Cart);
+// Cart.belongsTo(User);
 
-Cart.belongsToMany(Product, { through: CartItem });
-Product.belongsToMany(Cart, { through: CartItem });
+// Cart.belongsToMany(Product, { through: CartItem });
+// Product.belongsToMany(Cart, { through: CartItem });
 
-Order.belongsTo(User);
-User.hasMany(Order);
+// Order.belongsTo(User);
+// User.hasMany(Order);
 
-Order.belongsToMany(Product, { through: OrderItem });
-
-
-
+// Order.belongsToMany(Product, { through: OrderItem });
 
 //reflect new changes, force change
 // sync({force:true})
-
 //the start of npm start
-sequelize
-    .sync()
-    .then(res => {
-        return User.findByPk(1);
-    })
-    .then(user => {
-        if (!user) {
-            return User.create({ name: "TestingObj1", email: "abc@gmail.com" });
-        }
-        return user;
-    })
-    .then(user => {
-        user.getCart().then((cart) => {
-            if (!cart) {
-                return user.createCart();
-            }
-            return user;
-        })
-            .then(() => {
-                return app.listen(3000);
+// sequelize
+//     .sync()
+//     .then(res => {
+//         return User.findByPk(1);
+//     })
+//     .then(user => {
+//         if (!user) {
+//             return User.create({ name: "TestingObj1", email: "abc@gmail.com" });
+//         }
+//         return user;
+//     })
+//     .then(user => {
+//         user.getCart().then((cart) => {
+//             if (!cart) {
+//                 return user.createCart();
+//             }
+//             return user;
+//         })
+//             .then(() => {
+//                 return app.listen(3000);
 
-            }
-            ).catch(err => { console.log(err) })
-    })
-    .catch(err => {
-        console.log(err);
-    });
+//             }
+//             ).catch(err => { console.log(err) })
+//     })
+//     .catch(err => {
+//         console.log(err);
+//     });
 
+mongoConnect(client => {
+    console.log(client);
+    app.listen(3000);
+})
 
 //set the port    
 
