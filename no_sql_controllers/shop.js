@@ -2,6 +2,7 @@ const Product = require('../no_sql_models/product');
 const getDb = require('../util/database').getDb;
 const mongodb = require('mongodb');
 
+
 exports.getProducts = async (req, res, next) => {
     try {
         const products = await Product.fetchAll();
@@ -28,20 +29,92 @@ exports.getProduct = async (req, res, next) => {
 
 }
 
-exports.getEditProduct =
+exports.getCart = (req, res, next) => {
 
-    exports.getIndex = async (req, res, next) => {
-        try {
-            const products = await Product.fetchAll();
+    const prodId = req.body.productId;
 
-            res.render('shop/index', {
-                prods: products,
-                pageTitle: 'Shop',
-                path: '/'
-            });
+    req.user.getCart()
+        .then(cart => {
+            //magic Sequelize method provided through association
+            return cart.getProducts({ through: { id: prodId } })
+                .then((products) => {
+                    res.render('shop/cart', {
+                        products: products,
+                        path: '/cart',
+                        pageTitle: 'Your Cart'
+                    })
+                })
+                .catch(err => { console.log(err); })
 
-        } catch (err) {
-            console.log(err);
-        }
-    };
+        })
+        .catch(err => { console.log(err) });
+};
+
+exports.postCart = async (req, res, next) => {
+    const prodId = req.body.productId;
+    const product = await Product.findById(prodId);
+    await req.user.addToCart(product);
+    res.redirect('/cart');
+}
+//     let fetchedCart;
+//     req.user.getCart()
+//       .then(cart => {
+//         fetchedCart = cart;
+//         return cart.getProducts({ where: { id: prodId } });
+//       })
+//       .then(products => {
+//         // only 1 product if its in cart , empty otherwise
+//         console.log(products);
+
+//         let product;
+//         if (products.length >= 0) {
+//           product = products[0];
+//         }
+
+//         let newQuantity = 1;
+
+//         //exist in cart already
+//         if (product) {
+//           const oldQuantity = product.cartItem.quantity;
+//           newQuantity = oldQuantity + 1;
+//           return fetchedCart.addProduct(product, { through: { quantity: newQuantity } });
+//         }
+
+//         return Product.findByPk(prodId)
+//           .then((product) => {
+//             //another magical sequelize method automatically created
+//             return fetchedCart.addProduct(product, {
+//               through: {
+//                 quantity: newQuantity
+//               }
+//             })
+
+//           })
+//           .catch(err => {
+//             console.log(err);
+//           })
+//       }
+//       )
+//       .then(() => {
+//         return res.redirect('/cart');
+//       })
+//       .catch(err => {
+//         console.log(err);
+//       })
+
+
+exports.getIndex = async (req, res, next) => {
+    try {
+        const products = await Product.fetchAll();
+
+        res.render('shop/index', {
+            prods: products,
+            pageTitle: 'Shop',
+            path: '/'
+        });
+
+    } catch (err) {
+        console.log(err);
+    }
+};
 

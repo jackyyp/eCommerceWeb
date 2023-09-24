@@ -1,6 +1,5 @@
 require('dotenv').config();
 const mongodb = require('mongodb');
-const { get } = require('../routes/admin');
 const MongoClient = mongodb.MongoClient;
 
 let db;

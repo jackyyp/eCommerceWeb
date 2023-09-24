@@ -8,7 +8,7 @@ const errorController = require('./sql_controllers/error');
 
 // const sequelize = require('./util/database');
 // const Product = require('./models/product');
-// const User = require('./models/user');
+const User = require('./no_sql_models/user');
 // const Cart = require('./models/cart');
 // const CartItem = require('./models/cart-item');
 // const OrderItem = require('./models/order-item');
@@ -45,6 +45,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 //         });
 // })
 
+app.use(async (req, res, next) => {
+    const user = await User.findById('651005531772b5e7ba0c64de');
+    if (user) {
+        //create a new user object.
+        req.user = new User(user.name, user.email, user.cart, user._id);
+    } else {
+        throw new Error('no such user');
+    }
+    next();
+})
+
+
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
@@ -67,8 +79,7 @@ app.use(shopRoutes);
 
 // Order.belongsToMany(Product, { through: OrderItem });
 
-//reflect new changes, force change
-// sync({force:true})
+//reflect new changes, force change using sync({force:true})
 //the start of npm start
 // sequelize
 //     .sync()
@@ -98,8 +109,16 @@ app.use(shopRoutes);
 //         console.log(err);
 //     });
 
-mongoConnect(); // async method
-app.listen(3000);
+//
+
+
+
+
+
+mongoConnect().then(() => {
+    app.listen(3000)
+}
+).catch(err => { console.log(err) });
 
 
 

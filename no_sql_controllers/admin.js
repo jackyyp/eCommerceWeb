@@ -32,9 +32,11 @@ exports.postAddProduct = async (req, res, next) => {
     const imageUrl = req.body.imageUrl;
     const price = req.body.price;
     const description = req.body.description;
+    const userId = req.user._id;
 
+    console.log(userId);
     // no id is needed 
-    const product = new Product(title, imageUrl, price, description);
+    const product = new Product(title, imageUrl, price, description, null, userId);
     //async method
     try {
         await product.save();
@@ -71,14 +73,15 @@ exports.getEditProduct = async (req, res, next) => {
 exports.postEditProduct = async (req, res, next) => {
     // to hv productId  in body , you need a hidden input with name "ProductId"
     const prodId = req.body.productId;
+    const userId = req.user._id;
 
     const product = new Product(
-
         req.body.title,
         req.body.imageUrl,
         req.body.price,
         req.body.description,
-        new mongodb.ObjectId(prodId)
+        new mongodb.ObjectId(prodId),
+        new mongodb.ObjectId(userId)
     )
 
     try {
