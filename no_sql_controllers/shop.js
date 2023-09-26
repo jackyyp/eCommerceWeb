@@ -29,25 +29,15 @@ exports.getProduct = async (req, res, next) => {
 
 }
 
-exports.getCart = (req, res, next) => {
-
+exports.getCart = async (req, res, next) => {
     const prodId = req.body.productId;
+    const cartItems = await req.user.getCartItems();
 
-    req.user.getCart()
-        .then(cart => {
-            //magic Sequelize method provided through association
-            return cart.getProducts({ through: { id: prodId } })
-                .then((products) => {
-                    res.render('shop/cart', {
-                        products: products,
-                        path: '/cart',
-                        pageTitle: 'Your Cart'
-                    })
-                })
-                .catch(err => { console.log(err); })
-
-        })
-        .catch(err => { console.log(err) });
+    return res.render('shop/cart', {
+        products: cartItems,
+        path: '/cart',
+        pageTitle: 'Your Cart'
+    })
 };
 
 exports.postCart = async (req, res, next) => {
@@ -101,6 +91,12 @@ exports.postCart = async (req, res, next) => {
 //       .catch(err => {
 //         console.log(err);
 //       })
+
+exports.postDeleteCartProduct = async (req, res, next) => {
+    const prodId = req.body.productId;
+    await req.user.deleteCartItem(prodId);
+    res.redirect('/cart');
+}
 
 
 exports.getIndex = async (req, res, next) => {

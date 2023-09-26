@@ -22,10 +22,24 @@ class User {
 
     //product is an js object.
     async addToCart(product) {
-        // const cartProduct=  this.cart.items.findIndex(cp=>{
-        //     return cp._id===product._id;
-        // });
-        const updatedCart = { items: [{ ...product, quantity: 1 }] };
+
+
+        const cartProductIdx = this.cart.items.findIndex(cp => {
+            if (!cp) return false;
+            return cp.productId.toString() === product._id.toString();
+        });
+
+        const updatedCartItems = [...this.cart.items];
+
+        if (cartProductIdx >= 0) {
+            updatedCartItems[cartProductIdx].quantity += 1;
+        } else {
+            updatedCartItems.push({
+                productId: new mongodb.ObjectId(product._id),
+                quantity: 1
+            })
+        }
+        const updatedCart = { items: updatedCartItems };
         const db = getDb();
         try {
             return await db.collection('users').updateOne({ _id: new mongodb.ObjectId(this._id) }, { $set: { cart: updatedCart } });
@@ -44,8 +58,33 @@ class User {
         }
     }
 
-    static async fetchAll() {
+    //user-cart has 1-1 correspondence, all cart method are also here.
+
+    //return all the cart-product from cart obj id.
+    async getCartItems() {
+        const db = getDb();
+        const productIds = this.cart.items.map((i) => {
+            return i.productId;
+        })
+        const products = await db.collection('products').find({ _id: { $in: productIds } }).toArray();
+        return products.map((p) => {
+            return {
+                ...p,
+                quantity: this.cart.items.find(i => {
+                    return i.productId.toString() === p._id.toString();
+                }).quantity
+            };
+        })
+    }
+
+    async deleteCartItem(productId) {
+        const db = getDb();
+        const updatedCartItems = this.cart.items.filter((i) => {
+            return i.productId.toString() !== productId.toString();
+        })
+        return db.collection('users').updateOne({ _id: new mongodb.ObjectId(this._id) }, { $set: { cart: { items: updatedCartItems } } });
     }
 }
+
 
 module.exports = User;
