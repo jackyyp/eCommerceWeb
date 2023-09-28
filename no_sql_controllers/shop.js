@@ -5,7 +5,7 @@ const mongodb = require('mongodb');
 
 exports.getProducts = async (req, res, next) => {
     try {
-        const products = await Product.fetchAll();
+        const products = await Product.find();
 
         res.render('shop/product-list', {
             prods: products,
@@ -101,7 +101,7 @@ exports.postDeleteCartProduct = async (req, res, next) => {
 
 exports.getIndex = async (req, res, next) => {
     try {
-        const products = await Product.fetchAll();
+        const products = await Product.find();
 
         res.render('shop/index', {
             prods: products,
@@ -113,4 +113,26 @@ exports.getIndex = async (req, res, next) => {
         console.log(err);
     }
 };
+
+
+exports.getOrders = async (req, res, next) => {
+    const orders = await req.user.getOrders();
+    return res.render('shop/orders', {
+        path: '/orders',
+        pageTitle: 'Your Orders',
+        orders: orders
+    })
+
+}
+
+exports.postOrder = async (req, res, next) => {
+    try {
+        await req.user.addOrder();
+        return res.redirect('/orders');
+    } catch (err) {
+        console.log(err)
+    }
+
+}
+
 

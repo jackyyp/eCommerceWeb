@@ -4,7 +4,7 @@ const mongodb = require('mongodb');
 //async for fetching
 exports.getProducts = async (req, res, next) => {
     try {
-        const products = await Product.fetchAll(); //resolved promise
+        const products = await Product.find(); //resolved promise
         res.render('admin/products', {
             prods: products,
             pageTitle: 'Admin Products',
@@ -32,11 +32,14 @@ exports.postAddProduct = async (req, res, next) => {
     const imageUrl = req.body.imageUrl;
     const price = req.body.price;
     const description = req.body.description;
-    const userId = req.user._id;
 
-    console.log(userId);
-    // no id is needed 
-    const product = new Product(title, imageUrl, price, description, null, userId);
+    const product = new Product({
+        title: title,
+        price: price,
+        description: description,
+        imageUrl: imageUrl,
+        userId: req.user //convient by mongoose reference 
+    });
     //async method
     try {
         await product.save();
@@ -73,21 +76,20 @@ exports.getEditProduct = async (req, res, next) => {
 exports.postEditProduct = async (req, res, next) => {
     // to hv productId  in body , you need a hidden input with name "ProductId"
     const prodId = req.body.productId;
-    const userId = req.user._id;
 
-    const product = new Product(
-        req.body.title,
-        req.body.imageUrl,
-        req.body.price,
-        req.body.description,
-        new mongodb.ObjectId(prodId),
-        new mongodb.ObjectId(userId)
-    )
+
+
+
 
     try {
+        const product = await Product.findById(prodId);
+        product.title = req.body.title;
+        product.imageUrl = req.body.imageUrl;
+        product.price = req.body.price;
+        product.description = req.body.description;
+        product.userId = req.user; //mongoose
         await product.save();
-        console.log("updated");
-        res.redirect('/admin/products');
+        return res.redirect('/admin/products');
 
     } catch (err) {
         console.log(err)
@@ -97,7 +99,7 @@ exports.postEditProduct = async (req, res, next) => {
 exports.postDeleteProduct = async (req, res, next) => {
     const prodId = req.body.productId;
     try {
-        await Product.deleteById(prodId);
+        await Product.findByIdAndRemove(prodId);
         console.log("deleted product");
         res.redirect('/admin/products');
     } catch (err) {

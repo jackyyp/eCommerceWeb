@@ -1,5 +1,5 @@
 const path = require('path');
-
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -14,7 +14,8 @@ const User = require('./no_sql_models/user');
 // const OrderItem = require('./models/order-item');
 // const Order = require('./models/order');
 
-const mongoConnect = require('./util/database').mongoConnect;
+const mongoose = require('mongoose');
+//const mongoConnect = require('./util/database').mongoConnect;
 const getDb = require('./util/database').getDb;
 const app = express();
 
@@ -46,14 +47,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 // })
 
 app.use(async (req, res, next) => {
-    const user = await User.findById('651005531772b5e7ba0c64de');
+    const user = await User.findById('65159a157858adf86c8362b8');
     if (user) {
         //create a new user object.
-        req.user = new User(user.name, user.email, user.cart, user._id);
+        req.user = user;
+        next();
     } else {
         throw new Error('no such user');
     }
-    next();
 })
 
 
@@ -115,10 +116,23 @@ app.use(shopRoutes);
 
 
 
-mongoConnect().then(() => {
+mongoose.connect(`mongodb+srv://chpoonal:${process.env.DB_PASS}@node.ot6zfgm.mongodb.net/node`).then(async () => {
+
+    let user = await User.findOne();
+    if (!user) {
+        user = new User({
+            name: "jp",
+            email: "jp@gmail.com",
+            cart: {
+                items: []
+            }
+        })
+    }
+    user.save() //save this user in mongodb.
     app.listen(3000)
-}
-).catch(err => { console.log(err) });
+})
+    .catch(err => { console.log(err); })
+
 
 
 
